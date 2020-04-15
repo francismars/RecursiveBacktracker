@@ -1,5 +1,12 @@
-const resolution = 20
-let cellGrid = []
+const resolution = 10
+const WIDTH = 600
+const HEIGHT = 600
+const STARTX = 0
+const STARTY = 0
+let animation = true
+let cellGrid
+let cellStack
+let start
 
 let Cell = function(x,y){
 	this.x = x*resolution
@@ -22,7 +29,7 @@ let Cell = function(x,y){
 		}
 		if(this.right){
 			line(this.x+resolution, this.y, this.x+resolution, this.y+resolution) // right
-		}		
+		}
 	}
 	
 	this.neighbours = function () {
@@ -75,12 +82,9 @@ function removeWalls(cell1,cell2){
 	}
 }
 
-
 function recursiveBacktracker(){
-	let cellStack = []	
-	start = cellGrid[0][0]
-	start.visited = true
-	cellStack.push(start)	
+	animation = false
+	generateCellGrid()	
 	while(cellStack.length>0){
 		currentCell = cellStack.pop()
 		neighboursList = currentCell.neighbours()
@@ -93,28 +97,72 @@ function recursiveBacktracker(){
 			cellStack.push(newNeighbour)
 		}
 	}
+} 
+
+function activateAnimation(){
+	generateCellGrid()
+	animation = true
 }
 
-
 function generateCellGrid() {
+	cellGrid = []
 	for(i=0;i<=width/resolution;i++){
 		cellGrid[i] = []
 		for(j=0;j<height/resolution;j++){
 			cellGrid[i][j] = new Cell(i,j)
 		}
 	}
+	cellStack = []
+	start = cellGrid[STARTX][STARTY]
+	start.visited = true
+	cellStack.push(start)
 }
+
 function setup() {
-	//frameRate(1)
-	createCanvas(600, 600);
+	//frameRate(25)
+	createCanvas(WIDTH, HEIGHT);
 	generateCellGrid()
-	recursiveBacktracker()
+	
+	button = createButton('Maze it!');
+	button.position(WIDTH+100, 100);
+	button.mousePressed(recursiveBacktracker);
+	
+	button2 = createButton('Animate it!');
+	button2.position(WIDTH+100, 150);
+	button2.mousePressed(activateAnimation);
 }
 
 function draw() {
-	for(i=0;i<=width/resolution;i++){
-		for(j=0;j<height/resolution;j++){
-			cellGrid[i][j].draw()
-		}
-	} 		
+	clear()
+	if(animation){		
+		if(cellStack.length>0){
+			currentCell = cellStack.pop()
+			noStroke()
+			fill('#a1d6ff')		
+			rect(currentCell.x,currentCell.y,resolution,resolution)
+			for(i=0;i<=width/resolution;i++){
+				for(j=0;j<height/resolution;j++){
+					stroke('black')
+					noFill()	
+					cellGrid[i][j].draw()
+				}
+			}	
+			neighboursList = currentCell.neighbours()
+			nonVisitedNeighbours = filterNeighbours(neighboursList, false)
+			if(nonVisitedNeighbours.length>0){			
+				newNeighbour = nonVisitedNeighbours[floor(random(nonVisitedNeighbours.length))]
+				removeWalls(currentCell,newNeighbour)
+				cellStack.push(currentCell)
+				newNeighbour.visited = true
+				cellStack.push(newNeighbour)
+			}
+		}		
+	}
+	else {		
+		for(i=0;i<=width/resolution;i++){
+			for(j=0;j<height/resolution;j++){
+				cellGrid[i][j].draw()
+			}
+		}		
+	}
 }
