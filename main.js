@@ -1,5 +1,5 @@
-const resolution = 10
-const WIDTH = 600
+const RESOLUTION = 10
+const WIDTH = 800
 const HEIGHT = 600
 const STARTX = 0
 const STARTY = 0
@@ -9,27 +9,33 @@ let cellStack
 let start
 
 let Cell = function(x,y){
-	this.x = x*resolution
-	this.y = y*resolution
+	this.x = x*RESOLUTION
+	this.y = y*RESOLUTION
 	this.visited = false
 	this.top = true
 	this.bottom = true
 	this.left = true
 	this.right = true
+	this.active = false
 	
 	this.draw = function() {
+		stroke('black')
 		if(this.top){
-			line(this.x, this.y, this.x+resolution, this.y) // top			
+			line(this.x, this.y, this.x+RESOLUTION, this.y)		
 		}
 		if(this.bottom){
-			line(this.x, this.y+resolution, this.x+resolution, this.y+resolution) // bottom
+			line(this.x, this.y+RESOLUTION, this.x+RESOLUTION, this.y+RESOLUTION)
 		}
 		if(this.left){
-			line(this.x, this.y, this.x, this.y+resolution) // left
+			line(this.x, this.y, this.x, this.y+RESOLUTION)
 		}
 		if(this.right){
-			line(this.x+resolution, this.y, this.x+resolution, this.y+resolution) // right
+			line(this.x+RESOLUTION, this.y, this.x+RESOLUTION, this.y+RESOLUTION)
 		}
+		if(this.active){		
+			fill('#a1d6ff').noStroke()
+			rect(currentCell.x,currentCell.y,RESOLUTION,RESOLUTION)
+		}		
 	}
 	
 	this.neighbours = function () {
@@ -37,13 +43,13 @@ let Cell = function(x,y){
 		if(this.x>0){
 			neighboursList.push(cellGrid[x-1][y])
 		}
-		if(this.x<width-resolution){
+		if(this.x<width-RESOLUTION){
 			neighboursList.push(cellGrid[x+1][y])
 		}
 		if(this.y>0){
 			neighboursList.push(cellGrid[x][y-1])
 		}		
-		if(this.y<height-resolution){
+		if(this.y<height-RESOLUTION){
 			neighboursList.push(cellGrid[x][y+1])
 		}
 		return neighboursList
@@ -62,20 +68,20 @@ function filterNeighbours(list, visited){
 
 function removeWalls(cell1,cell2){
 	if(cell1.x - cell2.x == 0){
-		if(cell1.y - cell2.y > 0){ // cell1 por baixo
+		if(cell1.y - cell2.y > 0){ // cell1 bellow
 			cell1.top = false
 			cell2.bottom = false
 		}
-		else { // cell1 por cima
+		else { // cell1 above
 			cell1.bottom = false
 			cell2.top = false			
 		}
 	}
 	if(cell1.y - cell2.y == 0){
-		if(cell1.x - cell2.x > 0){ // a direita
+		if(cell1.x - cell2.x > 0){ // cell1 on the right
 			cell1.left = false
 			cell2.right = false
-		} else { // a esquerda
+		} else { // on the left
 			cell1.right = false
 			cell2.left = false			
 		}
@@ -106,9 +112,9 @@ function activateAnimation(){
 
 function generateCellGrid() {
 	cellGrid = []
-	for(i=0;i<=width/resolution;i++){
+	for(i=0;i<=width/RESOLUTION;i++){
 		cellGrid[i] = []
-		for(j=0;j<height/resolution;j++){
+		for(j=0;j<=height/RESOLUTION;j++){
 			cellGrid[i][j] = new Cell(i,j)
 		}
 	}
@@ -119,7 +125,6 @@ function generateCellGrid() {
 }
 
 function setup() {
-	//frameRate(25)
 	createCanvas(WIDTH, HEIGHT);
 	generateCellGrid()
 	
@@ -132,18 +137,14 @@ function setup() {
 	button2.mousePressed(activateAnimation);
 }
 
-function draw() {
-	clear()
+function draw() {	
 	if(animation){		
 		if(cellStack.length>0){
+			clear()
 			currentCell = cellStack.pop()
-			noStroke()
-			fill('#a1d6ff')		
-			rect(currentCell.x,currentCell.y,resolution,resolution)
-			for(i=0;i<=width/resolution;i++){
-				for(j=0;j<height/resolution;j++){
-					stroke('black')
-					noFill()	
+			currentCell.active = true
+			for(i=0;i<=width/RESOLUTION;i++){
+				for(j=0;j<height/RESOLUTION;j++){	
 					cellGrid[i][j].draw()
 				}
 			}	
@@ -154,13 +155,15 @@ function draw() {
 				removeWalls(currentCell,newNeighbour)
 				cellStack.push(currentCell)
 				newNeighbour.visited = true
+				currentCell.active = false
 				cellStack.push(newNeighbour)
 			}
 		}		
 	}
 	else {		
-		for(i=0;i<=width/resolution;i++){
-			for(j=0;j<height/resolution;j++){
+		clear()
+		for(i=0;i<=width/RESOLUTION;i++){
+			for(j=0;j<height/RESOLUTION;j++){
 				cellGrid[i][j].draw()
 			}
 		}		
